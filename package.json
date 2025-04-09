@@ -6,6 +6,19 @@
     "start": "node server/server.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
-  }
+    "body-parser": "^2.2.0",
+    "express": "^4.21.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/freeezeFrost/site-for-tutors.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/freeezeFrost/site-for-tutors/issues"
+  },
+  "homepage": "https://github.com/freeezeFrost/site-for-tutors#readme",
+  "description": ""
 }

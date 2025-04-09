@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Регистрация</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">Создайте аккаунт</h1>
+    <form class="form" method="POST" action="/register">
+      <input type="text" name="username" placeholder="Логин" required />
+      <input type="password" name="password" placeholder="Пароль" required />
+      <button type="submit">Зарегистрироваться</button>
+    </form>
+    <p class="link">
+      Уже есть аккаунт?
+      <a href="/login.html">Войти</a>
+    </p>
+  </div>
+</body>
+</html>
