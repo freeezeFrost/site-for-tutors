@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Реклама для репетиторов</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Платформа для рекламы репетиторов</h1>
+  </header>
+  <main>
+    <section>
+      <h2>Подай заявку</h2>
+      <form id="tutorForm">
+        <input type="text" name="name" placeholder="Ваше имя" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <textarea name="about" placeholder="Опишите себя как репетитора" required></textarea>
+        <button type="submit">Отправить</button>
+      </form>
+    </section>
+  </main>
+  <script>
+    document.getElementById("tutorForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form).entries());
+      await fetch("/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      alert("Заявка отправлена!");
+      form.reset();
+    });
+  </script>
+</body>
+</html>
