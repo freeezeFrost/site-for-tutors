@@ -1,20 +1,25 @@
-const fs = require('fs');
 const https = require('https');
+const fs = require('fs');
 const express = require('express');
 const path = require('path');
 
 const app = express();
 
-// Чтение SSL-сертификатов
-const privateKey = fs.readFileSync('/etc/letsencrypt/live/upformula.ru/privkey.pem', 'utf8');
-const certificate = fs.readFileSync('/etc/letsencrypt/live/upformula.ru/fullchain.pem', 'utf8');
-const credentials = { key: privateKey, cert: certificate };
-
-// Подключаем статику (папка public)
+// Путь до публичной папки
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Запуск HTTPS-сервера
-https.createServer(credentials, app).listen(443, () => {
-  console.log('HTTPS server running on port 443');
+// Редирект с / на /login.html
+app.get('/', (req, res) => {
+  res.redirect('/login.html');
 });
 
+// Путь до сертификатов
+const options = {
+  key: fs.readFileSync('/etc/letsencrypt/live/upformula.ru/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/upformula.ru/fullchain.pem'),
+};
+
+// Запуск HTTPS сервера
+https.createServer(options, app).listen(443, () => {
+  console.log('HTTPS сервер запущен на https://upformula.ru');
+});
