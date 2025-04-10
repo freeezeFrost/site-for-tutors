@@ -3,7 +3,7 @@ const fs = require('fs');
 const express = require('express');
 const path = require('path');
 
-const app = require('./server'); // подключаем готовое приложение
+const app = require('./server/server'); // подключаем готовое приложение
 
 // Путь до сертификатов
 const options = {
