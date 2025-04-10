@@ -3,15 +3,13 @@ const fs = require('fs');
 const express = require('express');
 const path = require('path');
 
-const app = require('./server/server'); // подключаем готовое приложение
+const app = require('./server/server'); // Подключаем готовое express-приложение
 
-// Путь до сертификатов
 const options = {
   key: fs.readFileSync('/etc/letsencrypt/live/upformula.ru/privkey.pem'),
-  cert: fs.readFileSync('/etc/letsencrypt/live/upformula.ru/fullchain.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/upformula.ru/fullchain.pem')
 };
 
-// Запуск HTTPS сервера
 https.createServer(options, app).listen(443, () => {
   console.log('HTTPS сервер запущен на https://upformula.ru');
 });
