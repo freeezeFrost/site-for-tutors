@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Подтверждение не завершено</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2 class="title">Подтвердите почту</h2>
+    <p class="text-muted">
+      Вы зарегистрировались, но ещё не подтвердили email.<br/>
+      Пожалуйста, проверьте вашу почту и введите код подтверждения.
+    </p>
+    <form method="GET" action="/confirm.html">
+      <input type="hidden" name="email" value="" id="confirmEmailInput" />
+      <button type="submit" class="button">Ввести код подтверждения</button>
+    </form>    
+  </div>
+  <script>
+    // Если email передан в URL — сохранить в localStorage
+    const params = new URLSearchParams(window.location.search);
+    const emailFromUrl = params.get('email');
+    if (emailFromUrl) {
+      localStorage.setItem('pendingEmail', emailFromUrl);
+    }
+  
+    // Подставляем email в форму подтверждения
+    const email = localStorage.getItem('pendingEmail');
+    if (email) {
+      document.getElementById('confirmEmailInput').value = email;
+    }
+  </script>  
+</body>
+</html>

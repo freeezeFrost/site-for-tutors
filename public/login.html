@@ -2,22 +2,50 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Вход в аккаунт</title>
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .error-message {
+      color: #e53e3e;
+      font-size: 14px;
+      margin-top: 5px;
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h1 class="title">Вход в аккаунт</h1>
-    <form class="form" method="POST" action="/login">
-      <input type="text" name="username" placeholder="Логин" required />
-      <input type="password" name="password" placeholder="Пароль" required />
-      <button type="submit">Войти</button>
+    <h2 class="title">Вход в аккаунт</h2>
+    <form id="loginForm" method="POST" action="/login">
+      <div class="form">
+        <input type="email" name="email" placeholder="Email" required />
+        <input type="password" id="password" name="password" placeholder="Пароль" required />
+        
+        <div id="loginError" class="error-message">Неверный email или пароль</div>
+
+        <div class="show-password">
+          <input type="checkbox" id="togglePassword">
+          <label for="togglePassword">Показать пароль</label>
+        </div>
+
+        <button type="submit">Войти</button>
+      </div>
     </form>
-    <p class="link">
-      Нет аккаунта?
-      <a href="/register.html">Зарегистрироваться</a>
-    </p>
+    <p class="link">Нет аккаунта? <a href="/register.html">Зарегистрироваться</a></p>
   </div>
+
+  <script>
+    // Показ/скрытие пароля
+    document.getElementById('togglePassword').addEventListener('change', function () {
+      const passwordField = document.getElementById('password');
+      passwordField.type = this.checked ? 'text' : 'password';
+    });
+
+    // Показ ошибки, если ?error=true
+    if (window.location.search.includes('error=true')) {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  </script>
 </body>
 </html>

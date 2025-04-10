@@ -2,22 +2,197 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Регистрация</title>
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .error-message {
+      color: #e53e3e;
+      font-size: 14px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .show-password {
+      display: flex;
+      align-items: center;
+      margin-top: 15px;
+    }
+
+    .show-password input {
+      margin-right: 8px;
+      transform: scale(1.2);
+    }
+  </style>
+  <script src="https://unpkg.com/imask"></script>
 </head>
 <body>
   <div class="container">
-    <h1 class="title">Создайте аккаунт</h1>
-    <form class="form" method="POST" action="/register">
-      <input type="text" name="username" placeholder="Логин" required />
-      <input type="password" name="password" placeholder="Пароль" required />
-      <button type="submit">Зарегистрироваться</button>
+    <h2 class="title">Создайте аккаунт</h2>
+    <form id="registerForm" method="POST" action="/register">
+      <div class="form">
+        <input type="text" name="firstName" placeholder="Имя" required />
+        <input type="text" name="lastName" placeholder="Фамилия" required />
+        <input type="email" name="email" id="email" placeholder="Email" required />
+        <span id="emailError" class="error-message"></span>
+        <input type="tel" name="phone" placeholder="Номер телефона" required pattern="^\+?[0-9\s\-\(\)]{7,20}$" />
+        <input type="password" name="password" placeholder="Пароль" required />
+        <div id="password-criteria" class="password-criteria hidden">
+          <p id="length-req">Минимум 6 символов</p>
+          <p id="uppercase-req">Хотя бы одна заглавная буква</p>
+          <p id="number-req">Хотя бы одна цифра</p>
+        </div>        
+        <input type="password" name="confirmPassword" placeholder="Подтвердите пароль" required />
+        
+        <div class="show-password">
+          <input type="checkbox" id="togglePassword">
+          <label for="togglePassword">Показать пароль</label>
+        </div>
+    
+        <div id="error" class="error-message">Пароли не совпадают</div>
+    
+        <button type="submit" class="button" id="registerButton" disabled>Зарегистрироваться</button>
+      </div>
     </form>
-    <p class="link">
-      Уже есть аккаунт?
-      <a href="/login.html">Войти</a>
-    </p>
+    
+    <p class="link">Уже есть аккаунт? <a href="/login.html">Войти</a></p>
   </div>
+
+  <script src="https://unpkg.com/imask"></script>
+  <script>
+    const passwordInput = document.querySelector('input[name="password"]');
+    const confirmInput = document.querySelector('input[name="confirmPassword"]');
+    const registerForm = document.getElementById('registerForm');
+    const submitBtn = document.getElementById('registerButton');
+    const criteriaBox = document.getElementById('password-criteria');
+    const lengthReq = document.getElementById('length-req');
+    const uppercaseReq = document.getElementById('uppercase-req');
+    const numberReq = document.getElementById('number-req');
+    const showPasswordCheckbox = document.getElementById('togglePassword');
+    const emailInput = document.getElementById("email");
+    const emailError = document.getElementById("emailError");
+    const phoneInput = document.querySelector('input[name="phone"]');
+  
+    const tempDomains = ['tempmail.com', '10minutemail.com', 'guerrillamail.com', 'mailinator.com'];
+    const commonTypos = ['gmai.com', 'gnail.com', 'hotmial.com', 'yaho.com'];
+    const allowedDomains = ['gmail.com', 'mail.ru', 'yandex.ru', 'outlook.com', 'list.ru', 'yahoo.com'];
+  
+    const mask = IMask(phoneInput, {
+      mask: '+{7} (000) 000-00-00'
+    });
+  
+    phoneInput.addEventListener('focus', () => {
+      if (!mask.unmaskedValue) mask.unmaskedValue = '7';
+    });
+  
+    phoneInput.addEventListener('blur', () => {
+      if (mask.value === '+7') mask.value = '';
+    });
+  
+    showPasswordCheckbox.addEventListener('change', () => {
+      const type = showPasswordCheckbox.checked ? 'text' : 'password';
+      passwordInput.type = type;
+      confirmInput.type = type;
+    });
+  
+    function checkPasswordCriteria(password) {
+      const isLength = password.length >= 6;
+      const hasUppercase = /[A-ZА-ЯЁ]/.test(password);
+      const hasNumber = /\d/.test(password);
+  
+      lengthReq.className = isLength ? 'valid' : 'invalid';
+      uppercaseReq.className = hasUppercase ? 'valid' : 'invalid';
+      numberReq.className = hasNumber ? 'valid' : 'invalid';
+  
+      return isLength && hasUppercase && hasNumber;
+    }
+  
+    function validateEmail(email) {
+      const trimmed = email.trim().toLowerCase();
+      const domain = trimmed.split('@')[1] || '';
+      const isFormatValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+  
+      if (!isFormatValid) {
+        emailError.textContent = "Введите корректный email";
+        emailInput.style.borderColor = "red";
+        return false;
+      }
+  
+      if (tempDomains.includes(domain)) {
+        emailError.textContent = "Временные email запрещены";
+        emailInput.style.borderColor = "red";
+        return false;
+      }
+  
+      if (!allowedDomains.includes(domain)) {
+        emailError.textContent = "Домен email не поддерживается";
+        emailInput.style.borderColor = "red";
+        return false;
+      }
+  
+      if (commonTypos.includes(domain)) {
+        emailError.textContent = "Проверьте домен — возможна ошибка";
+        emailInput.style.borderColor = "orange";
+      } else {
+        emailError.textContent = "";
+        emailInput.style.borderColor = "";
+      }
+  
+      return true;
+    }
+  
+    function validateForm() {
+      const pass = passwordInput.value.trim();
+      const confirm = confirmInput.value.trim();
+      const email = emailInput.value.trim();
+      const phone = phoneInput.value.trim();
+      const firstName = registerForm.querySelector('input[name="firstName"]').value.trim();
+      const lastName = registerForm.querySelector('input[name="lastName"]').value.trim();
+  
+      const isPasswordValid = checkPasswordCriteria(pass) && pass === confirm;
+      const isEmailValid = validateEmail(email);
+      const isPhoneFilled = phone.length >= 10;
+      const isFirstName = firstName.length > 0;
+      const isLastName = lastName.length > 0;
+  
+      const isFormComplete = isPasswordValid && isEmailValid && isPhoneFilled && isFirstName && isLastName;
+  
+      submitBtn.disabled = !isFormComplete;
+    }
+  
+    passwordInput.addEventListener('input', () => {
+      criteriaBox.classList.remove('hidden');
+      validateForm();
+    });
+  
+    confirmInput.addEventListener('input', validateForm);
+    emailInput.addEventListener("input", () => {
+      validateEmail(emailInput.value);
+      validateForm();
+    });
+  
+    confirmInput.addEventListener('blur', () => {
+      const pass = passwordInput.value.trim();
+      const confirm = confirmInput.value.trim();
+      const errorEl = document.getElementById('confirm-error');
+  
+      if (confirm !== '' && pass !== confirm) {
+        if (!errorEl) {
+          const error = document.createElement('div');
+          error.id = 'confirm-error';
+          error.textContent = 'Пароли не совпадают. Повторите попытку.';
+          error.style.color = 'red';
+          error.style.marginTop = '4px';
+          error.style.fontSize = '14px';
+          confirmInput.insertAdjacentElement('afterend', error);
+        }
+      } else {
+        if (errorEl) errorEl.remove();
+      }
+  
+      validateForm();
+    });
+  </script>  
+
 </body>
 </html>

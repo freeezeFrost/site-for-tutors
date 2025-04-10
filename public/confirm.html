@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Подтверждение регистрации</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .confirm-note {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 16px;
+    }
+
+    .code-input {
+      font-size: 24px;
+      letter-spacing: 10px;
+      text-align: center;
+      padding: 14px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="title">Подтвердите регистрацию</h2>
+    <p class="confirm-note">Код был отправлен на ваш Email</p>
+    <form method="POST" action="/confirm">
+      <input type="hidden" name="email" id="emailField">
+      <div class="form">
+        <input
+          type="text"
+          name="code"
+          maxlength="6"
+          placeholder="Введите код из письма"
+          required
+        />
+        <button type="submit" class="button">Подтвердить</button>
+      </div>      
+    </form>
+    <div id="message" class="message" style="display: none;"></div>
+<p style="margin-top: 16px;">
+  Не пришло письмо?
+  <a href="#" id="resendLink">Отправить повторно</a>
+  <span id="timer" style="margin-left: 8px; color: #888;"></span>
+</p>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get('email');
+    const status = urlParams.get('status'); // success или error
+    const messageEl = document.getElementById('message');
+  
+    if (email) {
+      document.getElementById('emailField').value = email;
+      document.getElementById('resendLink').href = `/resend?email=${encodeURIComponent(email)}`;
+    }
+  
+    if (status === 'error') {
+      messageEl.textContent = 'Неверный код подтверждения';
+      messageEl.className = 'message error';
+      messageEl.style.display = 'block';
+    }
+  
+    if (status === 'success') {
+      messageEl.textContent = 'Email успешно подтверждён!';
+      messageEl.className = 'message success';
+      messageEl.style.display = 'block';
+      setTimeout(() => {
+  window.location.href = '/login.html';
+}, 2000);
+    }
+
+    if (!email) {
+      // Попробовать достать email из localStorage
+      const stored = localStorage.getItem('pendingEmail');
+      if (stored) {
+        document.getElementById('emailField').value = stored;
+        document.getElementById('resendLink').href = `/resend?email=${encodeURIComponent(stored)}`;
+      }
+    }
+  
+    // Таймер
+    const resendLink = document.getElementById('resendLink');
+    const timerDisplay = document.getElementById('timer');
+    let seconds = 60;
+    resendLink.style.pointerEvents = 'none';
+    resendLink.style.opacity = 0.5;
+  
+    const interval = setInterval(() => {
+      timerDisplay.textContent = `Повторно через ${seconds} сек.`;
+      seconds--;
+      if (seconds < 0) {
+        clearInterval(interval);
+        resendLink.style.pointerEvents = 'auto';
+        resendLink.style.opacity = 1;
+        timerDisplay.textContent = '';
+      }
+    }, 1000);
+  </script>
+  
+  
+</body>
+</html>

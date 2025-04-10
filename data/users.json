@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "firstName": "dasdsa",
+    "lastName": "dadsad",
+    "email": "fokin_2005@list.ru",
+    "password": "$2b$10$HSAX/41RRdJ3aU9tT.2v8evsouxZGWRn8oenNrvtuFlyo.I5weQoa",
+    "confirmed": false
+  }
+]
