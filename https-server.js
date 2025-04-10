@@ -3,15 +3,7 @@ const fs = require('fs');
 const express = require('express');
 const path = require('path');
 
-const app = express();
-
-// Путь до публичной папки
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Редирект с / на /login.html
-app.get('/', (req, res) => {
-  res.redirect('/login.html');
-});
+const app = require('./server'); // подключаем готовое приложение
 
 // Путь до сертификатов
 const options = {
