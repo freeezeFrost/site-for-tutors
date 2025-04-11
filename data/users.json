@@ -19,5 +19,19 @@
     "email": "ifofof@yandex.ru",
     "password": "$2b$10$jDR9VTKxUoVMR7cS4tSod.5.dxPgS3F5QjWVegGD4/bKR7YySucna",
     "confirmed": false
+  },
+  {
+    "firstName": "Вова",
+    "lastName": "dadsad",
+    "email": "fdsffsfsd@gmail.com",
+    "password": "$2b$10$lEMxVS2BYy0XwbVRVlH1tO/5x1QUV36xMR5/PL58vJOCfrjl6ORru",
+    "confirmed": false
+  },
+  {
+    "firstName": "Gggg",
+    "lastName": "Gggg",
+    "email": "g@mail.ru",
+    "password": "$2b$10$rUYXSoILFN70HvT8ltjFqurD/utrda5upChsmuPBNazRN2Jei.SXu",
+    "confirmed": false
   }
 ]
