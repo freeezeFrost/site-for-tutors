@@ -132,8 +132,7 @@ app.post('/forgot-password', async (req, res) => {
       [token, expires, email]
     );
 
-    const resetLink = `${process.env.BASE_URL}/reset-password.html?token=${token}&email=${encodeURIComponent(email)}`;
-    await sendResetPasswordEmail(email, resetLink);
+    await sendResetPasswordEmail(email, token);
 
     res.status(200).send('Ссылка отправлена');
   } catch (err) {
@@ -143,6 +142,7 @@ app.post('/forgot-password', async (req, res) => {
 });
 
 app.post('/reset-password', async (req, res) => {
+
   const { email, token, password, confirmPassword } = req.body;
 
   if (password !== confirmPassword) {

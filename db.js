@@ -10,7 +10,7 @@ const { Pool } = pkg;
 }); // ЭТО ДЛЯ ВДС БАЗЫ
 
 
- /* const pool = new Pool({
+/*  const pool = new Pool({
   database: 'sitefortutors',
   user: 'main',
   password: '', // если не настраивал пароль

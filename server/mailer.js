@@ -1,10 +1,17 @@
 import nodemailer from 'nodemailer';
 
+import dotenv from 'dotenv';
+
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
+dotenv.config({ path: envFile });
+
+const BASE_URL = process.env.BASE_URL;
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'officeupformula@gmail.com',
-    pass: 'qbfn zroj fzll xlln'
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS
   }
 });
 
@@ -32,14 +39,10 @@ async function sendConfirmationEmail(toEmail, code) {
 
 async function sendResetPasswordEmail(toEmail, token) {
 
-  const BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://upformula.ru'
-  : 'http://localhost:3000';
-
   const resetLink = `${BASE_URL}/reset-password.html?email=${toEmail}&token=${token}`;
 
   const mailOptions = {
-    from: '"UpFormula" <officeupformula@gmail.com>',
+    from: '"UpFormula" <${process.env.GMAIL_USER}>',
     to: toEmail,
     subject: 'Восстановление пароля',
     html: `
