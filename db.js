@@ -4,7 +4,7 @@ const { Pool } = pkg;
 const pool = new Pool({
   user: 'tutors_user',
   host: 'localhost',
-  database: 'tutors_db',
+  database: 'sitefortutors',
   password: 'FokinVlad15',
   port: 5432,
 }); // ЭТО ДЛЯ ВДС БАЗЫ
