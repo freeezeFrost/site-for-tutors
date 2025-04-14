@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-function sendConfirmationEmail(toEmail, code) {
+async function sendConfirmationEmail(toEmail, code) {
   const mailOptions = {
     from: '"UpFormula" <officeupformula@gmail.com>',
     to: toEmail,
@@ -21,7 +21,37 @@ function sendConfirmationEmail(toEmail, code) {
     `
   };
 
-  return transporter.sendMail(mailOptions);
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Письмо успешно отправлено:', info.response);
+  } catch (error) {
+    console.error('Ошибка при отправке письма:', error);
+    throw error; // важно — пробрасываем ошибку обратно
+  }
 }
 
-module.exports = { sendConfirmationEmail };
+async function sendResetPasswordEmail(toEmail, token) {
+  const resetLink = `http://localhost:3000/reset-password.html?email=${encodeURIComponent(toEmail)}&token=${token}`;
+
+  const mailOptions = {
+    from: '"UpFormula" <officeupformula@gmail.com>',
+    to: toEmail,
+    subject: 'Восстановление пароля',
+    html: `
+      <h2>Восстановление пароля</h2>
+      <p>Вы запросили восстановление пароля. Чтобы сбросить пароль, перейдите по ссылке ниже:</p>
+      <a href="${resetLink}" style="color: #007bff;">Сбросить пароль</a>
+      <p>Если вы не запрашивали восстановление, просто проигнорируйте это письмо.</p>
+    `
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Письмо для восстановления пароля отправлено:', info.response);
+  } catch (error) {
+    console.error('Ошибка при отправке письма восстановления:', error);
+    throw error;
+  }
+}
+
+export { sendConfirmationEmail, sendResetPasswordEmail };

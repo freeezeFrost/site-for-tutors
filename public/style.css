@@ -76,9 +76,9 @@ body {
 .show-password {
   display: flex;
   align-items: center;
-  gap: 16px; /* Чуть больше расстояние между чекбоксом и текстом */
-  margin-left: 8px; /* Сдвиг влево, чтобы совпадало с инпутами */
-  margin-top: 15px;
+  gap: 10px; /* Чуть больше расстояние между чекбоксом и текстом */
+  margin-left: 3px; /* Сдвиг влево, чтобы совпадало с инпутами */
+  margin-top: 10px;
   margin-bottom: 25px;
   font-size: 16px;
   font-weight: 500;
@@ -158,21 +158,30 @@ body {
   display: none;
 }
 
+.password-criteria.hidden {
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
 .password-criteria {
   font-size: 12px;
-  margin-top: -15px;            /* Ближе к полю */
-  margin-left: 8px;           /* Сдвинуть немного вправо */
-  margin-bottom: 6px;
+  margin-left: 8px;
+  max-height: 66px; /* высота на 3 строки */
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
   transition: opacity 0.3s ease;
   text-align: left;
+  margin-bottom: 6px;
+  margin-top: -15px;
 }
 
-.password-criteria.hidden {
-  display: none;
-}
-
-.password-criteria p {
-  margin: 4px 0;
+.password-criteria.visible {
+  opacity: 1;
+  visibility: visible;
 }
 
 .invalid {
@@ -189,12 +198,111 @@ button[disabled] {
 }
 
 .error-message {
-  font-size: 14px;
   color: #d64545;
-  margin-top: 4px;
+  font-size: 13px;
   margin-left: 8px;
+  display: block;
+  text-align: left;
+  min-height: 18px;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.error-message.below {
+  margin-top: -15px;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: #d64545;
   display: block;
 }
 
+.input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  width: 100%;
+  margin-bottom: 0;
+}
 
+.error-message.above {
+  margin-bottom: 4px;
+  margin-left: 8px;
+  font-size: 13px;
+  color: #d64545;
+}
 
+input.error {
+  border: 1px solid #d64545;
+  background-color: #fff6f6;
+}
+
+.error-message.invisible {
+  display: block;
+  min-height: 16px; /* или подгони под твою высоту */
+  opacity: 0;
+  visibility: hidden;
+  margin-top: 5px;
+}
+
+.error-message.hidden {
+  display: none;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.login-error-message {
+  color: #d64545;
+  font-size: 13px;
+  margin-top: -15px;
+  margin-bottom: 8px;
+  display: none;
+  text-align: left;
+}
+
+.forgot-password-link {
+  text-align: right;
+  margin-bottom: 10px;
+  margin-top: -4px;
+}
+
+.forgot-password-link a {
+  font-size: 14px;
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.forgot-password-link a:hover {
+  text-decoration: underline;
+}
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: -10px 2px -10px 2px;
+}
+
+.forgot-error-message {
+  color: #d64545;
+  font-size: 14px;
+  text-align: left;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  margin-left: 8px;
+}
+
+.forgot-error-message.hidden {
+  display: none;
+}
+
+.success-message {
+  color: #28a745; /* зелёный */
+  font-size: 16px;
+  margin-top: 8px;
+  text-align: center;
+}

@@ -1,9 +1,8 @@
-const https = require('https');
-const fs = require('fs');
-const express = require('express');
-const path = require('path');
-
-const app = require('./server/server'); // Подключаем готовое express-приложение
+import https from 'https';
+import fs from 'fs';
+import express from 'express';
+import path from 'path';
+import app from './server/server.js';
 
 const options = {
   key: fs.readFileSync('/etc/letsencrypt/live/upformula.ru/privkey.pem'),

@@ -1,116 +1,75 @@
-const { sendConfirmationEmail } = require('./mailer');
-const express = require('express');
-const bodyParser = require('body-parser');
-const fs = require('fs');
-const path = require('path'); // ← вот это должно быть ДО использования path
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import path from 'path';
+import db from '../db.js';
+import { sendConfirmationEmail, sendResetPasswordEmail } from './mailer.js';
+import auth from './auth.js';
+const { register, login, confirm } = auth;
 
-const { register, login, confirmEmail } = require('./auth');
 
 const app = express();
 
-const confirmPath = path.join(__dirname, '../data/confirmations.json'); // ← теперь всё будет ок
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
   const { firstName, lastName, email, password, confirmPassword } = req.body;
 
   if (password !== confirmPassword) {
     return res.send('Пароли не совпадают. <a href="/register.html">Назад</a>');
   }
 
-  const tempDomains = [
-    '10minutemail.com', 'yopmail.com', 'mailinator.com',
-    'guerrillamail.com', 'temp-mail.org', 'tempmail.lol'
-  ];
-  
+  const tempDomains = ['10minutemail.com', 'yopmail.com', 'mailinator.com', 'guerrillamail.com', 'temp-mail.org', 'tempmail.lol'];
   const emailDomain = email.split('@')[1];
   if (tempDomains.includes(emailDomain)) {
     return res.send('Пожалуйста, используйте реальный email. Временные почтовые сервисы запрещены.');
+  }
+
+  const code = await register({ firstName, lastName, email, password });
+
+  if (!code) {
+    return res.status(409).json({ error: 'Пользователь с такой почтой уже существует' });
   }  
 
-  const success = register({
-    firstName,
-    lastName,
-    email,
-    password
-  });
+try {
+  await sendConfirmationEmail(email, code);
+  console.log("Код подтверждения отправлен");
+  res.redirect(`/confirm.html?email=${encodeURIComponent(email)}`);
+} catch (err) {
+  console.error('Ошибка при отправке письма:', err);
+  res.send('Не удалось завершить регистрацию. Попробуйте позже.');
+}
 
-  if (success) {
-    // Генерация 6-значного кода
-const code = Math.floor(100000 + Math.random() * 900000);
-
-// Сохраняем код по email
-const confirmations = fs.existsSync(confirmPath)
-  ? JSON.parse(fs.readFileSync(confirmPath))
-  : {};
-confirmations[email] = code;
-fs.writeFileSync(confirmPath, JSON.stringify(confirmations, null, 2));
-
-// Отправляем письмо
-sendConfirmationEmail(email, code)
-  .then(() => {
-    res.redirect(`/confirm.html?email=${encodeURIComponent(email)}`);
-  })
-  .catch(err => {
-    console.error('Ошибка отправки:', err);
-    res.send('Не удалось отправить письмо. Попробуйте позже.');
-  });
-
-  } else {
-    res.redirect('/user-exists.html');
-  }
 });
 
 
-app.post('/confirm', (req, res) => {
+app.post('/confirm', async (req, res) => {
   const { email, code } = req.body;
 
-  const confirmPath = path.join(__dirname, '../data/confirmations.json');
-  const confirmations = fs.existsSync(confirmPath)
-    ? JSON.parse(fs.readFileSync(confirmPath))
-    : {};
+  const success = await confirm(email, code);
 
-  if (confirmations[email] && confirmations[email].toString() === code) {
-    // Код верный — обновим статус confirmed у пользователя
-const usersPath = path.join(__dirname, '../data/users.json');
-const users = JSON.parse(fs.readFileSync(usersPath));
-const userIndex = users.findIndex(u => u.email === email);
-if (userIndex !== -1) {
-  users[userIndex].confirmed = true;
-  fs.writeFileSync(usersPath, JSON.stringify(users, null, 2));
-}
-
-// Удалим код
-delete confirmations[email];
-fs.writeFileSync(confirmPath, JSON.stringify(confirmations, null, 2));
-
-// Перенаправим на вход
-return res.redirect('/confirm.html?status=success');
-
-  } else {
-    // Неверный код — сообщение об ошибке
+  if (!success) {
     return res.redirect(`/confirm.html?email=${encodeURIComponent(email)}&status=error`);
-
   }
+
+  return res.redirect('/confirm.html?status=success');
 });
 
 
-app.post('/login', (req, res) => {
+
+app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  const result = login(email, password);
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const result = await login(email, password, ip);
 
-if (result === 'not-confirmed') {
-  return res.redirect('/not-confirmed.html');
-}
-
-if (result) {
-  return res.redirect('/dashboard.html');
-} else {
+  if (result === 'not-confirmed') return res.redirect('/not-confirmed.html');
+  if (result === 'blocked') return res.redirect('/login.html?blocked=true');
+  if (result) return res.redirect('/dashboard.html');
   return res.redirect('/login.html?error=true');
-}
 });
+
 
 // GET /login
 app.get('/login', (req, res) => {
@@ -131,30 +90,78 @@ app.get('/', (req, res) => {
   res.redirect('/login.html');
 });
 
-app.get('/resend', (req, res) => {
+app.get('/resend', async (req, res) => {
   const email = req.query.email;
   if (!email) return res.redirect('/register.html');
 
-  const code = Math.floor(100000 + Math.random() * 900000);
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-  const confirmPath = path.join(__dirname, '../data/confirmations.json');
-  const confirmations = fs.existsSync(confirmPath)
-    ? JSON.parse(fs.readFileSync(confirmPath))
-    : {};
-  confirmations[email] = code;
-  fs.writeFileSync(confirmPath, JSON.stringify(confirmations, null, 2));
+  try {
+    await sendConfirmationEmail(email, code);
+    res.redirect(`/confirm.html?email=${encodeURIComponent(email)}`);
+  } catch (err) {
+    console.error('Ошибка при повторной отправке:', err);
+    res.send('Не удалось отправить письмо. Попробуйте позже.');
+  }
+});
 
-  sendConfirmationEmail(email, code)
-    .then(() => {
-      res.redirect(`/confirm.html?email=${encodeURIComponent(email)}`);
-    })
-    .catch(err => {
-      console.error('Ошибка при повторной отправке:', err);
-      res.send('Не удалось отправить письмо. Попробуйте позже.');
-    });
+process.on('unhandledRejection', (reason, promise) => {
+  console.log('Необработанное отклонение промиса:', reason);
+});
+
+import crypto from 'crypto';
+
+app.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const userCheck = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+
+    if (userCheck.rows.length === 0) {
+      return res.status(400).send('Пользователь с таким email не найден');
+    }
+
+    // если пользователь найден, продолжи генерацию токена и отправку письма:
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 3600000); // 1 час
+
+    await db.query(
+      'UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE email = $3',
+      [token, expires, email]
+    );
+
+    await sendResetPasswordEmail(email, token); // твоя функция отправки письма
+
+    res.status(200).send('Ссылка отправлена');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Ошибка сервера');
+  }
+});
+
+app.post('/reset-password', async (req, res) => {
+  const { email, token, password, confirmPassword } = req.body;
+
+  if (password !== confirmPassword) {
+    return res.send('Пароли не совпадают. <a href="/reset-password.html">Назад</a>');
+  }
+
+  const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+  const user = result.rows[0];
+
+  if (!user || user.reset_token !== token || new Date(user.reset_token_expires) < new Date()) {
+    return res.send('Ссылка недействительна или истек срок. <a href="/forgot-password.html">Попробовать снова</a>');
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  await db.query(
+    'UPDATE users SET password = $1, reset_token = NULL, reset_token_expires = NULL WHERE email = $2',
+    [hashedPassword, email]
+  );
+
+  res.redirect('/reset-password.html?reset=success');
 });
 
 
-
-//app.listen(3000, () => console.log('Сервер запущен на http://localhost:3000'));
-module.exports = app;
+app.listen(3000, () => console.log('Сервер запущен на http://localhost:3000'));
+export default app;

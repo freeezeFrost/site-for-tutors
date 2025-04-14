@@ -5,14 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Вход в аккаунт</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    .error-message {
-      color: #e53e3e;
-      font-size: 14px;
-      margin-top: 5px;
-      display: none;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
@@ -22,12 +14,20 @@
         <input type="email" name="email" placeholder="Email" required />
         <input type="password" id="password" name="password" placeholder="Пароль" required />
         
-        <div id="loginError" class="error-message">Неверный email или пароль</div>
-
-        <div class="show-password">
-          <input type="checkbox" id="togglePassword">
-          <label for="togglePassword">Показать пароль</label>
+        <div id="loginError" class="login-error-message">Неверный email или пароль</div>
+        <div id="blockedError" class="login-error-message">
+          Слишком много попыток входа. Попробуйте позже.
         </div>
+
+        <div class="form-options">
+          <div class="show-password">
+            <input type="checkbox" id="togglePassword">
+            <label for="togglePassword">Показать пароль</label>
+          </div>
+          <div class="forgot-password-link">
+            <a href="forgot-password.html">Забыли пароль?</a>
+          </div>
+        </div>        
 
         <button type="submit">Войти</button>
       </div>
@@ -41,11 +41,25 @@
       const passwordField = document.getElementById('password');
       passwordField.type = this.checked ? 'text' : 'password';
     });
-
-    // Показ ошибки, если ?error=true
-    if (window.location.search.includes('error=true')) {
+  
+    // Обработка параметров URL
+    const params = new URLSearchParams(window.location.search);
+  
+    if (params.get('error') === 'true') {
       document.getElementById('loginError').style.display = 'block';
     }
-  </script>
+  
+    if (params.get('blocked') === 'true') {
+      document.getElementById('blockedError').style.display = 'block';
+    }
+  
+    // Удаление параметров из адресной строки через 1 сек
+    setTimeout(() => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('error');
+      url.searchParams.delete('blocked');
+      window.history.replaceState({}, document.title, url.pathname);
+    }, 1000);
+  </script>  
 </body>
 </html>

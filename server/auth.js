@@ -1,44 +1,68 @@
-const fs = require('fs');
-const path = require('path');
-const bcrypt = require('bcrypt');
-const usersFilePath = path.join(__dirname, '..', 'data', 'users.json');
+import { hash, compare } from 'bcryptjs';
 
+import db from '../db.js';
 
-function getUsers() {
-  if (!fs.existsSync(usersFilePath)) return [];
-  return JSON.parse(fs.readFileSync(usersFilePath));
+import { isBlocked, registerAttempt, resetAttempts } from './bruteForceProtection.js';
+
+async function register({ firstName, lastName, email, password }) {
+  const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const hashedPassword = await hash(password, 10);
+
+  try {
+    await db.query(`
+      INSERT INTO users (first_name, last_name, email, password, confirmation_code)
+      VALUES ($1, $2, $3, $4, $5)
+    `, [firstName, lastName, email, hashedPassword, confirmationCode]);
+    return confirmationCode;
+  } catch (err) {
+    if (err.code === '23505') {
+      return null; // email уже существует
+    } else {
+      throw err;
+    }
+  }
 }
 
-function register({ firstName, lastName, email, phone, password }) {
-  const users = getUsers();
+async function login(email, password, ip) {
+  if (isBlocked(ip)) {
+    return 'blocked';
+  }
 
-  if (users.find(user => user.email === email)) return false;
+  const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+  const user = result.rows[0];
 
-  const hashedPassword = bcrypt.hashSync(password, 10);
+  if (!user) {
+    registerAttempt(ip);
+    return false;
+  }
 
-  users.push({
-    firstName,
-    lastName,
-    email,
-    phone,
-    password: hashedPassword,
-    confirmed: false
-  });
+  const match = await compare(password, user.password);
+  if (!match) {
+    registerAttempt(ip);
+    return false;
+  }
 
-  fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
+  // теперь проверяем подтверждение ТОЛЬКО если пароль верный
+  if (!user.is_confirmed) return 'not-confirmed';
+
+  resetAttempts(ip);
+  return user;
+}
+
+async function confirm(email, code) {
+  const result = await query(
+    'SELECT * FROM users WHERE email = $1 AND confirmation_code = $2',
+    [email, code]
+  );
+
+  if (result.rows.length === 0) return false;
+
+  await query(
+    'UPDATE users SET is_confirmed = TRUE WHERE email = $1',
+    [email]
+  );
+
   return true;
 }
 
-
-function login(email, password) {
-  const users = JSON.parse(fs.readFileSync(usersFilePath, 'utf8'));
-  const user = users.find(user => user.email === email);
-  if (!user) return false;
-  if (!user.confirmed) return 'not-confirmed';
-
-  return bcrypt.compareSync(password, user.password) ? user : false;
-
-}
-
-
-module.exports = { register, login };
+export default { register, login, confirm };
