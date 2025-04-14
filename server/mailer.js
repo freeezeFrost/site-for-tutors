@@ -31,7 +31,12 @@ async function sendConfirmationEmail(toEmail, code) {
 }
 
 async function sendResetPasswordEmail(toEmail, token) {
-  const resetLink = `http://localhost:3000/reset-password.html?email=${encodeURIComponent(toEmail)}&token=${token}`;
+
+  const BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://upformula.ru'
+  : 'http://localhost:3000';
+
+  const resetLink = `${BASE_URL}/reset-password.html?email=${toEmail}&token=${token}`;
 
   const mailOptions = {
     from: '"UpFormula" <officeupformula@gmail.com>',

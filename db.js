@@ -1,7 +1,7 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 
-const pool = new Pool({
+  const pool = new Pool({
   user: 'tutors_user',
   host: 'localhost',
   database: 'sitefortutors',
@@ -10,7 +10,7 @@ const pool = new Pool({
 }); // ЭТО ДЛЯ ВДС БАЗЫ
 
 
-/* const pool = new Pool({
+ /* const pool = new Pool({
   database: 'sitefortutors',
   user: 'main',
   password: '', // если не настраивал пароль

@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import path from 'path';
@@ -129,7 +132,8 @@ app.post('/forgot-password', async (req, res) => {
       [token, expires, email]
     );
 
-    await sendResetPasswordEmail(email, token); // твоя функция отправки письма
+    const resetLink = `${process.env.BASE_URL}/reset-password.html?token=${token}&email=${encodeURIComponent(email)}`;
+    await sendResetPasswordEmail(email, resetLink);
 
     res.status(200).send('Ссылка отправлена');
   } catch (err) {
