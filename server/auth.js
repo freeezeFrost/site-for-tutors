@@ -50,14 +50,14 @@ async function login(email, password, ip) {
 }
 
 async function confirm(email, code) {
-  const result = await query(
+  const result = await db.query(
     'SELECT * FROM users WHERE email = $1 AND confirmation_code = $2',
     [email, code]
   );
 
   if (result.rows.length === 0) return false;
 
-  await query(
+  await db.query(
     'UPDATE users SET is_confirmed = TRUE WHERE email = $1',
     [email]
   );
