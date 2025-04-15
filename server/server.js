@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(express.static('public'));
 
 app.post('/register', async (req, res) => {
-  const { firstName, lastName, email, password, confirmPassword } = req.body;
+  const { firstName, lastName, email, password, confirmPassword, phone } = req.body;
 
   if (password !== confirmPassword) {
     return res.send('Пароли не совпадают. <a href="/register.html">Назад</a>');
@@ -30,7 +30,7 @@ app.post('/register', async (req, res) => {
     return res.send('Пожалуйста, используйте реальный email. Временные почтовые сервисы запрещены.');
   }
 
-  const code = await register({ firstName, lastName, email, password });
+  const code = await register({ firstName, lastName, email, password, phone });
 
   if (!code) {
     return res.status(409).json({ error: 'Пользователь с такой почтой уже существует' });
@@ -67,7 +67,9 @@ app.post('/login', async (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   const result = await login(email, password, ip);
 
-  if (result === 'not-confirmed') return res.redirect('/not-confirmed.html');
+  if (result === 'not-confirmed') {
+    return res.redirect(`/not-confirmed.html?email=${encodeURIComponent(email)}`);
+  }
   if (result === 'blocked') return res.redirect('/login.html?blocked=true');
   if (result) return res.redirect('/dashboard.html');
   return res.redirect('/login.html?error=true');
@@ -100,6 +102,7 @@ app.get('/resend', async (req, res) => {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
 
   try {
+    await db.query('UPDATE users SET confirmation_code = $1 WHERE email = $2', [code, email]);
     await sendConfirmationEmail(email, code);
     res.redirect(`/confirm.html?email=${encodeURIComponent(email)}`);
   } catch (err) {
@@ -164,6 +167,30 @@ app.post('/reset-password', async (req, res) => {
   );
 
   res.redirect('/reset-password.html?reset=success');
+});
+
+app.post('/resend-confirmation', async (req, res) => {
+  const email = req.body.email?.trim().toLowerCase();
+  if (!email) return res.status(400).send('Email обязателен');
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+  try {
+// 🔍 Проверка: есть ли пользователь
+    const userCheck = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (userCheck.rows.length === 0) {
+      console.log(`❌ Пользователь с email ${email} не найден`);
+      return res.status(404).send('Пользователь не найден');
+}
+
+    await db.query('UPDATE users SET confirmation_code = $1 WHERE email = $2', [code, email]);
+    await sendConfirmationEmail(email, code);
+    console.log('📨 Код подтверждения отправлен по кнопке повторно:', email);
+    res.sendStatus(200);
+  } catch (err) {
+    console.error('❌ Ошибка при повторной отправке через кнопку:', err);
+    res.status(500).send('Ошибка при отправке письма');
+  }
 });
 
 

@@ -7,6 +7,7 @@ dotenv.config({ path: envFile });
 
 const BASE_URL = process.env.BASE_URL;
 
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -16,8 +17,11 @@ const transporter = nodemailer.createTransport({
 });
 
 async function sendConfirmationEmail(toEmail, code) {
+  console.log('📤 Отправка кода подтверждения на:', toEmail);
+  console.log('📧 Код:', code);
+
   const mailOptions = {
-    from: '"UpFormula" <officeupformula@gmail.com>',
+    from: `"UpFormula" <${process.env.GMAIL_USER}>`,
     to: toEmail,
     subject: 'Код подтверждения регистрации',
     html: `

@@ -13,24 +13,43 @@
       Вы зарегистрировались, но ещё не подтвердили email.<br/>
       Пожалуйста, проверьте вашу почту и введите код подтверждения.
     </p>
-    <form method="GET" action="/confirm.html">
-      <input type="hidden" name="email" value="" id="confirmEmailInput" />
-      <button type="submit" class="button">Ввести код подтверждения</button>
-    </form>    
+    <button id="sendCodeBtn" class="button">Ввести код подтверждения</button>   
   </div>
   <script>
-    // Если email передан в URL — сохранить в localStorage
     const params = new URLSearchParams(window.location.search);
     const emailFromUrl = params.get('email');
+  
     if (emailFromUrl) {
       localStorage.setItem('pendingEmail', emailFromUrl);
     }
   
-    // Подставляем email в форму подтверждения
     const email = localStorage.getItem('pendingEmail');
-    if (email) {
-      document.getElementById('confirmEmailInput').value = email;
-    }
-  </script>  
+  
+    document.getElementById('sendCodeBtn').addEventListener('click', async () => {
+      if (!email) {
+        alert("Email не найден");
+        return;
+      }
+  
+      try {
+        const res = await fetch('/resend-confirmation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+  
+        if (res.ok) {
+          window.location.href = `/confirm.html?email=${encodeURIComponent(email)}`;
+        } else {
+          alert("Не удалось отправить код. Попробуйте позже.");
+        }
+      } catch (e) {
+        console.error(e);
+        alert("Ошибка при соединении с сервером.");
+      }
+    });
+  </script>
+  
+  
 </body>
 </html>
