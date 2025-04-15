@@ -5,7 +5,7 @@ const deleteUnconfirmedUsers = async () => {
   try {
     const result = await db.query(
       `DELETE FROM users 
-       WHERE confirmed = false 
+       WHERE is_confirmed = false 
        AND created_at < NOW() - INTERVAL '5 minutes'`
     );
 
