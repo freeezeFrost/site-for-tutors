@@ -7,7 +7,7 @@ const { Pool } = pkg;
   database: 'sitefortutors',
   password: 'FokinVlad15',
   port: 5432,
-}); // ЭТО ДЛЯ ВДС БАЗЫ
+});  // ЭТО ДЛЯ ВДС БАЗЫ
 
 
 /*  const pool = new Pool({
@@ -16,7 +16,7 @@ const { Pool } = pkg;
   password: '', // если не настраивал пароль
   host: 'localhost',
   port: 5432,
-}); */  //ЭТО ДЛЯ БАЗЫ НА ЛОКАЛКЕ
+}); */ //ЭТО ДЛЯ БАЗЫ НА ЛОКАЛКЕ
 
 const db = pool;
 export default db;

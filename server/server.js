@@ -127,15 +127,16 @@ app.post('/forgot-password', async (req, res) => {
     }
 
     // если пользователь найден, продолжи генерацию токена и отправку письма:
-    const token = crypto.randomBytes(32).toString('hex');
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
     const expires = new Date(Date.now() + 3600000); // 1 час
 
     await db.query(
       'UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE email = $3',
-      [token, expires, email]
+      [tokenHash, expires, email]
     );
 
-    await sendResetPasswordEmail(email, token);
+    await sendResetPasswordEmail(email, rawToken); // по почте отправляем обычный токен
 
     res.status(200).send('Ссылка отправлена');
   } catch (err) {
@@ -154,8 +155,9 @@ app.post('/reset-password', async (req, res) => {
 
   const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
   const user = result.rows[0];
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-  if (!user || user.reset_token !== token || new Date(user.reset_token_expires) < new Date()) {
+  if (!user || user.reset_token !== tokenHash || new Date(user.reset_token_expires) < new Date()) {
     return res.send('Ссылка недействительна или истек срок. <a href="/forgot-password.html">Попробовать снова</a>');
   }
 
