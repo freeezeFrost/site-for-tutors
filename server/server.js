@@ -1,6 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import helmet from 'helmet';
+import xss from 'xss-clean';
+import csurf from 'csurf';
+import cookieParser from 'cookie-parser';
+
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import path from 'path';
@@ -16,6 +21,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use(express.static('public'));
+
+app.use(helmet());
+app.use(xss());
+app.use(cookieParser());
+app.use(csurf({ cookie: true }));
 
 app.post('/register', async (req, res) => {
   const { firstName, lastName, email, password, confirmPassword, phone } = req.body;
@@ -47,7 +57,6 @@ try {
 
 });
 
-
 app.post('/confirm', async (req, res) => {
   const { email, code } = req.body;
 
@@ -59,7 +68,6 @@ app.post('/confirm', async (req, res) => {
 
   return res.redirect('/confirm.html?status=success');
 });
-
 
 
 app.post('/login', async (req, res) => {
@@ -193,6 +201,10 @@ app.post('/resend-confirmation', async (req, res) => {
     console.error('❌ Ошибка при повторной отправке через кнопку:', err);
     res.status(500).send('Ошибка при отправке письма');
   }
+});
+
+app.get('/csrf-token', (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
 });
 
 

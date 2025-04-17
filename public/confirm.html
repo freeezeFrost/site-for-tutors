@@ -29,6 +29,7 @@
     <p class="confirm-note">Код был отправлен на ваш Email</p>
     <form method="POST" action="/confirm">
       <input type="hidden" name="email" id="emailField">
+      <input type="hidden" name="_csrf" id="csrfToken" />
       <div class="form">
         <input
           type="text"
@@ -100,6 +101,14 @@
         timerDisplay.textContent = '';
       }
     }, 1000);
+
+    fetch('/csrf-token')
+      .then(res => res.json())
+      .then(data => {
+        const csrfField = document.getElementById('csrfToken');
+        if (csrfField) csrfField.value = data.csrfToken;
+      });
+
   </script>
   
   

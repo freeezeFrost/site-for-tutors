@@ -24,6 +24,14 @@
     }
   
     const email = localStorage.getItem('pendingEmail');
+
+    let csrfToken = '';
+
+    fetch('/csrf-token')
+      .then(res => res.json())
+      .then(data => {
+        csrfToken = data.csrfToken;
+      });
   
     document.getElementById('sendCodeBtn').addEventListener('click', async () => {
       if (!email) {
@@ -34,7 +42,10 @@
       try {
         const res = await fetch('/resend-confirmation', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken
+          },
           body: JSON.stringify({ email })
         });
   

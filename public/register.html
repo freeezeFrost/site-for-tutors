@@ -29,6 +29,7 @@
   <div class="container">
     <h2 class="title">Создайте аккаунт</h2>
     <form id="registerForm" method="POST" action="/register">
+      <input type="hidden" name="_csrf" id="csrfToken" />
       <div class="form">
         <input type="text" name="firstName" placeholder="Имя" required />
         <input type="text" name="lastName" placeholder="Фамилия" required />
@@ -74,6 +75,18 @@
     let serverEmailError = false;
     const emailError = document.getElementById("emailError");
     const phoneInput = document.querySelector('input[name="phone"]');
+
+    let csrfToken = '';
+
+    fetch('/csrf-token')
+      .then(res => res.json())
+      .then(data => {
+        const csrfField = document.getElementById('csrfToken');
+        if (csrfField) {
+          csrfField.value = data.csrfToken;
+          csrfToken = data.csrfToken;
+        }
+      });
   
     const tempDomains = ['tempmail.com', '10minutemail.com', 'guerrillamail.com', 'mailinator.com'];
     const commonTypos = ['gmai.com', 'gnail.com', 'hotmial.com', 'yaho.com'];
@@ -226,6 +239,8 @@
 
       const formData = new FormData(registerForm);
       const plainData = Object.fromEntries(formData.entries());
+
+      plainData._csrf = csrfToken;
 
       const response = await fetch('/register', {
         method: 'POST',

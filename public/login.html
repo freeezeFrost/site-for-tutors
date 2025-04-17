@@ -10,6 +10,7 @@
   <div class="container">
     <h2 class="title">Вход в аккаунт</h2>
     <form id="loginForm" method="POST" action="/login">
+      <input type="hidden" name="_csrf" id="csrfToken" />
       <div class="form">
         <input type="email" name="email" placeholder="Email" required />
         <input type="password" id="password" name="password" placeholder="Пароль" required />
@@ -60,6 +61,13 @@
       url.searchParams.delete('blocked');
       window.history.replaceState({}, document.title, url.pathname);
     }, 1000);
+
+    fetch('/csrf-token')
+      .then(res => res.json())
+      .then(data => {
+        const csrfField = document.getElementById('csrfToken');
+        if (csrfField) csrfField.value = data.csrfToken;
+      });
   </script>  
 </body>
 </html>
